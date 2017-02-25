@@ -12,7 +12,9 @@ def employee():
 
     # Get a list of employees
     employee_list = []
-    names = db.Task.select(db.Task.user_name).distinct().where(db.Task.user_name.startswith(search_term)).group_by(db.Task.user_name)
+    names = (db.Task.select(db.Task.user_name).distinct()
+             .where(db.Task.user_name.startswith(search_term))
+             .group_by(db.Task.user_name))
     for name in names:
         employee_list.append(name.user_name)
 
@@ -23,7 +25,8 @@ def employee():
 
     if len(employee_list) == 1:
         # Display the results
-        display_tasks(db.Task.select().where(db.Task.user_name == employee_list[0]))
+        display_tasks(db.Task.select()
+                        .where(db.Task.user_name == employee_list[0]))
 
     if len(employee_list) > 1:
         # Display a list of employees
@@ -38,7 +41,8 @@ def employee():
             return
 
         # Display the results
-        display_tasks(db.Task.select().where(db.Task.user_name == employee_list[int(menu_employee)-1]))
+        display_tasks(db.Task.select().where(
+            db.Task.user_name == employee_list[int(menu_employee)-1]))
 
 
 def date():
@@ -61,51 +65,30 @@ def date():
             break
 
         # Display the results
-        display_tasks(db.Task.select().where(db.Task.date == date_list[int(menu_date)-1]))
+        display_tasks(db.Task.select()
+                      .where(db.Task.date == date_list[int(menu_date)-1]))
+        break
 
 
 def date_range():
-    message = ""
-    while True:
-        functions.header_line("Lookup tasks by date range.")
-        functions.display_message(message)
+    start_date = functions.edit("start date", "Lookup tasks by date range.",
+                                "date", True, datetime.date.today())
+    end_date = functions.edit("end date", "Lookup tasks by date range.",
+                              "date", True, datetime.date.today())
 
-        print("Enter the start date  in the format YYYY-MM-DD.")
-        start_date = input("Leave blank for today: ").strip()
-        if start_date == "":
-            start_date = datetime.date.today().strftime('%Y-%m-%d')
-        elif (not re.match(r'\d{4}-\d{2}-\d{2}', start_date) or
-              int(start_date[5:7]) > 12 or int(start_date[8:10]) > 31):
-            message = ("Invalid date {}. Date must be in the format "
-                       "YYYY-MM-DD.".format(start_date))
-            continue
-        break
+    display_tasks(db.Task.select().where(db.Task.date
+                                         .between(start_date, end_date)))
 
-    message = ""
-    while True:
-        functions.header_line("Lookup tasks by date range.")
-        functions.display_message(message)
-
-        print("Enter the end date  in the format YYYY-MM-DD.")
-        end_date = input("Leave blank for today: ").strip()
-        if end_date == "":
-            end_date = datetime.date.today().strftime('%Y-%m-%d')
-        elif (not re.match(r'\d{4}-\d{2}-\d{2}', end_date) or
-              int(end_date[5:7]) > 12 or int(end_date[8:10]) > 31):
-            message = ("Invalid date {}. Date must be in the format "
-                       "YYYY-MM-DD.".format(end_date))
-            continue
-        break
-
-    display_tasks(db.Task.select().where(db.Task.date.between(start_date, end_date)))
 
 def term():
-    functions.header_line("Enter a search term to look for in the task names and notes.")
+    functions.header_line("Enter a search term to look for in the "
+                          "task names and notes.")
     search_term = input("Enter a term: ")
 
     # Display the results
-    display_tasks(db.Task.select().where((db.Task.task_name.contains(search_term))|(db.Task.notes.contains(search_term))))
-
+    display_tasks(db.Task.select()
+                  .where((db.Task.task_name.contains(search_term)) |
+                         (db.Task.notes.contains(search_term))))
 
 
 def display_tasks(data):
@@ -125,8 +108,8 @@ def display_tasks(data):
     # Create an object for viewing and editing
     while True:
         display_task = task.Task(task=task_list[task_position],
-                        header_line="Displaying task {} of {}."
-                        .format(task_position + 1, len(task_list)))
+                                 header_line="Displaying task {} of {}."
+                                 .format(task_position + 1, len(task_list)))
         display_task.view_task()
 
         print("Options:")

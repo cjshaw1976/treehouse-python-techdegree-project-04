@@ -1,10 +1,22 @@
+import re
+
+
 # Clears the screen
 def clear_screen():
+    """Clears the screen"""
     print("\033c", end="")
+
+
+# Test valid datetime
+def is_valid_date(text):
+    return (re.match(r'\d{4}-\d{2}-\d{2}', str(text)) and
+            int(str(text)[5:7]) < 13 and int(str(text)[5:7]) > 0 and
+            int(str(text)[8:10]) < 32 and int(str(text)[8:10]) > 0)
 
 
 # Clears the screen and displays the headline
 def header_line(text):
+    """Clears the screen and displays the headline"""
     if len(text) > 0:
         clear_screen()
         print(text)
@@ -13,12 +25,14 @@ def header_line(text):
 
 # Displays message if exists
 def display_message(message):
+    """Displays error messages with a newline at the end for readability"""
     if message.strip() != "":
         print(message + "\n")
 
 
 # Display a user menu
 def menu(title, *args):
+    """Creates the user menu and takes and checks input"""
     message = ""
     while True:
         # Clear screen
@@ -46,3 +60,28 @@ def menu(title, *args):
             continue
 
         return menu_select
+
+
+def edit(title, header_text="", type="text", required=True, value=""):
+    """Handles user input"""
+    message = ""
+    while True:
+        header_line(header_text)
+        display_message(message)
+        if value != "":
+            print("Leave empty for current: {}".format(value))
+        text = input("Enter the task {}: ".format(title))
+        if text.strip() == "":
+            if value != "":
+                text = value
+            elif required is True:
+                message = "Task {} cannot be empty.".format(title)
+                continue
+        if type == "number" and not text.isnumeric():
+            message = "Task {} must be a number.".format(title)
+            continue
+        if (type == "date" and not is_valid_date(text)):
+            message = ("Invalid date {}. Date must be in the format "
+                       "YYYY-MM-DD.".format(text))
+            continue
+        return text
